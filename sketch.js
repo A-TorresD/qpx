@@ -1,205 +1,194 @@
-// Variables para los elementos del DOM
-let emailInput, passwordInput, loginBtn;
-let state = "login"; // Estados: "login" o "denied"
+// Login Qpx
+let inputUsuario, inputPassword, botonLogin;
+let enlaceOlvidaste, botonCrearCuenta;
 
-// Paleta de colores (demostracion)
-const fbBlue = '#1877f2';
-const bgColor = '#f0f2f5';
-const fbGreen = '#42b72a';
+// Video
+let captura;
+// estados:
+let estadoActual = 'LOGIN';
 
-// Glitch del error 403
-let glitchOffset = 0;
+// Paleta de colores
+let colorPrincipal = '#BC4ED8'; 
+let colorFondo = '#f0f2f5';     
+let colorVerde = '#42b72a';     
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  
-  // Formulario
-  let formX = width / 2 + 100;
-  let formY = height / 2 - 150;
-  
-  // AjustE
-  if (width < 850) {
-    formX = width / 2 - 180;
-    formY = height / 2;
-  }
 
-  // Email
-  emailInput = createInput('');
-  emailInput.attribute('placeholder', 'Correo electrónico o número de teléfono');
-  emailInput.size(330, 45);
-  emailInput.position(formX + 15, formY + 20);
-  emailInput.style('font-size', '16px');
-  emailInput.style('padding', '10px 15px');
-  emailInput.style('border', '1px solid #ddd');
-  emailInput.style('border-radius', '6px');
-  emailInput.style('outline', 'none');
+  // Inicializar la cámara de vigilancia
+  captura = createCapture(VIDEO);
+  captura.hide(); 
 
-  // Contraseña
-  passwordInput = createInput('');
-  passwordInput.attribute('type', 'password');
-  passwordInput.attribute('placeholder', 'Contraseña');
-  passwordInput.size(330, 45);
-  passwordInput.position(formX + 15, formY + 80);
-  passwordInput.style('font-size', '16px');
-  passwordInput.style('padding', '10px 15px');
-  passwordInput.style('border', '1px solid #ddd');
-  passwordInput.style('border-radius', '6px');
-  passwordInput.style('outline', 'none');
+  //LOGIN FALSO
+  let anchoFormulario = 350;
+  let formX = width / 2 - anchoFormulario / 2;
+  let formY = height / 2 - 50;
 
-  // Iniciar Sesión
-  loginBtn = createButton('Iniciar sesión');
-  loginBtn.size(360, 50);
-  loginBtn.position(formX + 15, formY + 145);
-  loginBtn.style('background-color', fbBlue);
-  loginBtn.style('color', 'white');
-  loginBtn.style('font-size', '20px');
-  loginBtn.style('font-weight', 'bold');
-  loginBtn.style('border', 'none');
-  loginBtn.style('border-radius', '6px');
-  loginBtn.style('cursor', 'pointer');
-  
-  // Efecto
-  loginBtn.mouseOver(() => loginBtn.style('background-color', '#166fe5'));
-  loginBtn.mouseOut(() => loginBtn.style('background-color', fbBlue));
-  
-  // Asignar evento al clic
-  loginBtn.mousePressed(triggerAccessDenied);
+  inputUsuario = createInput('');
+  inputUsuario.attribute('placeholder', 'Correo electrónico o número de teléfono');
+  inputUsuario.position(formX + 15, formY + 20);
+  inputUsuario.size(anchoFormulario - 30, 45);
+  inputUsuario.style('font-size', '16px');
+  inputUsuario.style('padding', '10px 15px');
+  inputUsuario.style('border', '1px solid #ddd');
+  inputUsuario.style('border-radius', '6px');
+  inputUsuario.style('box-sizing', 'border-box');
+  inputUsuario.style('outline', 'none');
+
+  inputPassword = createInput('', 'password');
+  inputPassword.attribute('placeholder', 'Contraseña');
+  inputPassword.position(formX + 15, formY + 80);
+  inputPassword.size(anchoFormulario - 30, 45);
+  inputPassword.style('font-size', '16px');
+  inputPassword.style('padding', '10px 15px');
+  inputPassword.style('border', '1px solid #ddd');
+  inputPassword.style('border-radius', '6px');
+  inputPassword.style('box-sizing', 'border-box');
+  inputPassword.style('outline', 'none');
+
+  botonLogin = createButton('Iniciar sesión');
+  botonLogin.position(formX + 15, formY + 140);
+  botonLogin.size(anchoFormulario - 30, 45);
+  botonLogin.style('background-color', colorPrincipal); 
+  botonLogin.style('color', 'white');
+  botonLogin.style('font-size', '20px');
+  botonLogin.style('font-weight', 'bold');
+  botonLogin.style('border', 'none');
+  botonLogin.style('border-radius', '6px');
+  botonLogin.style('cursor', 'pointer');
+  botonLogin.mousePressed(Colapso);
+
+  enlaceOlvidaste = createA('#', '¿Olvidaste tu contraseña?');
+  enlaceOlvidaste.position(formX + 90, formY + 200);
+  enlaceOlvidaste.style('color', colorPrincipal); 
+  enlaceOlvidaste.style('font-size', '14px');
+  enlaceOlvidaste.style('text-decoration', 'none');
+  enlaceOlvidaste.style('font-family', 'sans-serif');
+
+  botonCrearCuenta = createButton('Crear cuenta nueva');
+  botonCrearCuenta.position(formX + 85, formY + 250);
+  botonCrearCuenta.size(180, 40);
+  botonCrearCuenta.style('background-color', colorVerde);
+  botonCrearCuenta.style('color', 'white');
+  botonCrearCuenta.style('font-size', '16px');
+  botonCrearCuenta.style('font-weight', 'bold');
+  botonCrearCuenta.style('border', 'none');
+  botonCrearCuenta.style('border-radius', '6px');
+  botonCrearCuenta.style('cursor', 'pointer');
 }
 
 function draw() {
-  if (state === "login") {
-    drawLoginScreen();
-  } else if (state === "denied") {
-    drawErrorScreen();
+  if (estadoActual === 'LOGIN') {
+    Login();
+  } else if (estadoActual === 'COLAPSO') {
+    InterfazDividida();
   }
 }
 
-function drawLoginScreen() {
-  background(bgColor);
-  textFont('Helvetica, Arial, sans-serif');
+//FUNCIONES
 
-  let formX = width / 2 + 100;
-  let formY = height / 2 - 150;
-  let formW = 390;
-  let formH = 340;
+function Login() {
+  background(colorFondo); 
   
-  let logoX = width / 2 - 400;
-  let logoY = height / 2 - 50;
+  let anchoFormulario = 350;
+  let altoFormulario = 310;
+  let formX = width / 2 - anchoFormulario / 2;
+  let formY = height / 2 - 50;
 
-  // Ajustes para pantallas pequeñas
-  if (width < 850) {
-    formX = width / 2 - formW / 2;
-    formY = height / 2;
-    logoX = width / 2;
-    logoY = height / 2 - 120;
-    textAlign(CENTER, CENTER);
-  } else {
-    textAlign(LEFT, CENTER);
-  }
-
-  //LOGO
-  textSize(80);
+  // Logotipo Qpx
+  textAlign(CENTER, CENTER);
+  textSize(60);
+  fill(colorPrincipal); 
   textStyle(BOLD);
-  fill(fbBlue);
-  // Replicamos el estilo visual con el nombre de tu obra
-  text("Qpx", logoX, logoY);
+  text("Qpx", width / 2, formY - 60);
+  textStyle(NORMAL);
 
-  // SUBTÍTU
-  if (width >= 850) {
-    textSize(28);
-    fill(0);
-    textStyle(NORMAL);
-    textLeading(32);
-    text("Ponte en onda y enterate de todo en QPX.", logoX, logoY + 65);
-  }
-
-  //FORMULARIO
+  // formulario
   fill(255);
-  stroke(221, 223, 226); // Color del borde de FB
+  stroke(220);
   strokeWeight(1);
-  rect(formX, formY, formW, formH, 8); // Radio de borde de 8px
+  rect(formX, formY, anchoFormulario, altoFormulario, 8); 
 
-  // Línea divisoria
-  stroke(221, 223, 226);
-  line(formX + 15, formY + 230, formX + formW - 15, formY + 230);
+  // Divison
+  stroke(220);
+  line(formX + 15, formY + 235, formX + anchoFormulario - 15, formY + 235);
+}
 
-  //TEXTOS ADICIONALES (FAKE BUTTONS)
+function Colapso() {
+  inputUsuario.hide();
+  inputPassword.hide();
+  botonLogin.hide();
+  enlaceOlvidaste.hide();
+  botonCrearCuenta.hide();
+  
+  estadoActual = 'COLAPSO';
+}
+
+function InterfazDividida() {
+  //Fondo gris 
+  background(240); 
+
+  let mitadAncho = width / 2;
+
+  //CAMARA
+  image(captura, 0, 0, mitadAncho, height);
+
+  // Logo Qpx y cámara sobre video
+  fill(255); 
+  noStroke();
+  textSize(28);
+  textAlign(LEFT, TOP);
+  textStyle(BOLD);
+  text("Qpx! 🎥", 20, 20);
+  textStyle(NORMAL);
+
+  //Divison
+  stroke(200); 
+  strokeWeight(2);
+  line(mitadAncho, 0, mitadAncho, height);
+
+  // FEED
   noStroke();
   
-  //Olvidaste tu contraseña
-  fill(fbBlue);
-  textSize(14);
-  textAlign(CENTER, CENTER);
-  text("¿Olvidaste tu contraseña?", formX + formW / 2, formY + 210);
+  //Barra superior
+  fill(colorPrincipal);
+  rect(mitadAncho, 0, mitadAncho, 60);
 
-  // Crear cuenta nueva
-  fill(fbGreen);
-  rectMode(CENTER);
-  rect(formX + formW / 2, formY + 285, 190, 45, 6);
-  
+  // Perfil
   fill(255);
-  textStyle(BOLD);
-  textSize(17);
-  text("Crear cuenta nueva", formX + formW / 2, formY + 285);
-  
-  // rectMode (no afectar otros dibujos)
-  rectMode(CORNER);
-}
+  ellipse(mitadAncho + 40, 30, 30, 30);
 
-function drawErrorScreen() {
-  // Fondoparpadea 
-  background(random(100, 255), 0, 0);  
-  
-  // estático
-  loadPixels();
-  for (let i = 0; i < pixels.length; i += 16) {
-    let noiseVal = random(255);
-    pixels[i] = noiseVal;     // R
-    pixels[i+1] = 0;          // G
-    pixels[i+2] = 0;          // B
-    pixels[i+3] = random(150); // Alpha
-  }
-  updatePixels();
-
-  // Texto Glitch principal
-  textFont('Courier New');
-  textAlign(CENTER, CENTER);
-  textStyle(BOLD);
-  
-  glitchOffset = random(-10, 10);
-  
-  textSize(100);
+  // Textos
   fill(255);
-  text("ERROR 403", (width / 2) + glitchOffset, (height / 2) - 50);
-  
-  textSize(40);
-  fill(0);
-  text("ACCESO DENEGADO", (width / 2) - glitchOffset, (height / 2) + 20);
-  
+  textAlign(LEFT, CENTER);
   textSize(20);
+  text("Amigos", mitadAncho + 65, 30);
+
+  //Barra de búsqueda
   fill(255);
-  text("ESTO ES UNA PRUEBA JIJIJI", width / 2, height / 2 + 100);
+  rect(mitadAncho + 150, 15, mitadAncho - 180, 30, 15);
+
+  //Iconoas y texto
+  fill(150); 
+  textSize(14);
+  text("🔍 Búsqueda", mitadAncho + 165, 30);
+  fill(120);
+  textSize(14);
+  textAlign(LEFT, BOTTOM);
+  text("buscar / amigos", mitadAncho + 20, height - 20);
 }
 
-// inicio DE LA OBRA
-function triggerAccessDenied() {
-  // Ocultamos los inputs de HTML
-  emailInput.hide();
-  passwordInput.hide();
-  loginBtn.hide();
-  
-  // bucle TEST
-  state = "denied";
-  
-  //AQUI VA LA OBRA
-  // SOLICITAR la webcam y solicitan permisos de micrófono.
-}
-
-// Para asegurar que los elementos se mantengan alineados si se cambia el tamaño de la ventana
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  if (state === "login") {
-    // Recargar para reposicionar los elementos DOM 
-    window.location.reload(); 
+  if (estadoActual === 'LOGIN') {
+    let anchoFormulario = 350;
+    let formX = width / 2 - anchoFormulario / 2;
+    let formY = height / 2 - 50;
+
+    inputUsuario.position(formX + 15, formY + 20);
+    inputPassword.position(formX + 15, formY + 80);
+    botonLogin.position(formX + 15, formY + 140);
+    enlaceOlvidaste.position(formX + 90, formY + 200);
+    botonCrearCuenta.position(formX + 85, formY + 250);
   }
 }
