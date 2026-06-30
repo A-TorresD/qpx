@@ -3,6 +3,8 @@
  // Login Qpx
 let inputUsuario, inputPassword, botonLogin;
 let enlaceOlvidaste, botonCrearCuenta;
+let botonFotoPerfil, botonConfirmarFoto, botonCancelarFoto;
+let pfp;
 
 // Video
 let captura;
@@ -56,11 +58,11 @@ function setup() {
 
   // LOGIN FALSO (como mi ex pipipp)
   let anchoFormulario = 350;
-  let formX = width / 2 - anchoFormulario / 2;
+  let formX = 5 + width / 2 - anchoFormulario / 2;
   let formY = height / 2 - 50;
 
   inputUsuario = createInput('');
-  inputUsuario.attribute('placeholder', 'Correo electrónico o número de teléfono');
+  inputUsuario.attribute('placeholder', 'Usuario');
   inputUsuario.position(formX + 15, formY + 20);
   inputUsuario.size(anchoFormulario - 30, 45);
   inputUsuario.style('font-size', '16px');
@@ -70,19 +72,8 @@ function setup() {
   inputUsuario.style('box-sizing', 'border-box');
   inputUsuario.style('outline', 'none');
 
-  inputPassword = createInput('', 'password');
-  inputPassword.attribute('placeholder', 'Contraseña');
-  inputPassword.position(formX + 15, formY + 80);
-  inputPassword.size(anchoFormulario - 30, 45);
-  inputPassword.style('font-size', '16px');
-  inputPassword.style('padding', '10px 15px');
-  inputPassword.style('border', '1px solid #ddd');
-  inputPassword.style('border-radius', '6px');
-  inputPassword.style('box-sizing', 'border-box');
-  inputPassword.style('outline', 'none');
-
-  botonLogin = createButton('Iniciar sesión');
-  botonLogin.position(formX + 15, formY + 140);
+  botonLogin = createButton('Crear cuenta');
+  botonLogin.position(formX + 15, formY + 80);
   botonLogin.size(anchoFormulario - 30, 45);
   botonLogin.style('background-color', colorPrincipal); 
   botonLogin.style('color', 'white');
@@ -91,40 +82,66 @@ function setup() {
   botonLogin.style('border', 'none');
   botonLogin.style('border-radius', '6px');
   botonLogin.style('cursor', 'pointer');
-  botonLogin.mousePressed(Colapso);
+  botonLogin.mousePressed(irAFotoPerfil);
 
-  enlaceOlvidaste = createA('#', '¿Olvidaste tu contraseña?');
-  enlaceOlvidaste.position(formX + 90, formY + 200);
-  enlaceOlvidaste.style('color', colorPrincipal); 
-  enlaceOlvidaste.style('font-size', '14px');
-  enlaceOlvidaste.style('text-decoration', 'none');
-  enlaceOlvidaste.style('font-family', 'sans-serif');
+  botonFotoPerfil = createButton('📸');
+  botonFotoPerfil.position(formX + 15, formY + 130);
+  botonFotoPerfil.size(anchoFormulario - 30, 45);
+  botonFotoPerfil.style('background-color', colorPrincipal);
+  botonFotoPerfil.style('color', 'white');
+  botonFotoPerfil.style('font-size', '20px');
+  botonFotoPerfil.style('font-weight', 'bold');
+  botonFotoPerfil.style('border', 'none');
+  botonFotoPerfil.style('border-radius', '6px');
+  botonFotoPerfil.style('cursor', 'pointer');
+  botonFotoPerfil.mousePressed(verificarFotoPerfil);
 
-  botonCrearCuenta = createButton('Crear cuenta nueva');
-  botonCrearCuenta.position(formX + 85, formY + 250);
-  botonCrearCuenta.size(180, 40);
-  botonCrearCuenta.style('background-color', colorVerde);
-  botonCrearCuenta.style('color', 'white');
-  botonCrearCuenta.style('font-size', '16px');
-  botonCrearCuenta.style('font-weight', 'bold');
-  botonCrearCuenta.style('border', 'none');
-  botonCrearCuenta.style('border-radius', '6px');
-  botonCrearCuenta.style('cursor', 'pointer');
+  botonConfirmarFoto = createButton('Confirmar');
+  botonConfirmarFoto.position(formX + 15, formY + 190);
+  botonConfirmarFoto.size(anchoFormulario - 30, 45);
+  botonConfirmarFoto.style('background-color', colorVerde); 
+  botonConfirmarFoto.style('color', 'white');
+  botonConfirmarFoto.style('font-size', '20px');
+  botonConfirmarFoto.style('font-weight', 'bold');
+  botonConfirmarFoto.style('border', 'none');
+  botonConfirmarFoto.style('border-radius', '6px');
+  botonConfirmarFoto.style('cursor', 'pointer');
+  botonConfirmarFoto.mousePressed(Colapso);
+
+  botonCancelarFoto = createButton('Intentar de nuevo');
+  botonCancelarFoto.position(formX + 15, formY + 250);
+  botonCancelarFoto.size(anchoFormulario - 30, 45);
+  botonCancelarFoto.style('background-color', '#e74c3c'); 
+  botonCancelarFoto.style('color', 'white');
+  botonCancelarFoto.style('font-size', '20px');
+  botonCancelarFoto.style('font-weight', 'bold');
+  botonCancelarFoto.style('border', 'none');
+  botonCancelarFoto.style('border-radius', '6px');
+  botonCancelarFoto.style('cursor', 'pointer');
 }
 
 function draw() {
+  botonFotoPerfil.hide();
+  botonConfirmarFoto.hide();
+  botonCancelarFoto.hide();
   if (estadoActual === 'LOGIN') {
     Login();
+  } else if (estadoActual === 'FOTOPERFIL') {
+    fotoPerfil();
+  } else if (estadoActual === 'VERIFICARFOTOPERFIL') {
+    confirmarFoto();
   } else if (estadoActual === 'COLAPSO') {
     InterfazDividida();
     DibujarFeedSimulado();
   }
 }
 
+
+// LOGIN
 function Login() {
   background(colorFondo); 
   let anchoFormulario = 350;
-  let altoFormulario = 310;
+  let altoFormulario = 130;
   let formX = width / 2 - anchoFormulario / 2;
   let formY = height / 2 - 50;
 
@@ -139,18 +156,64 @@ function Login() {
   stroke(220);
   strokeWeight(1);
   rect(formX, formY, anchoFormulario, altoFormulario, 8); 
-
-  stroke(220);
-  line(formX + 15, formY + 235, formX + anchoFormulario - 15, formY + 235);
 }
 
-function Colapso() {
-  inputUsuario.hide();
-  inputPassword.hide();
-  botonLogin.hide();
-  enlaceOlvidaste.hide();
-  botonCrearCuenta.hide();
-  
+function irAFotoPerfil() {
+  if (inputUsuario) inputUsuario.hide();
+  if (botonLogin) botonLogin.hide();
+  estadoActual = 'FOTOPERFIL';
+  registrarEvento('SISTEMA', 'CREAR_CUENTA', 'El usuario inició el flujo para crear cuenta.');
+}
+
+// FOTO PERFIL
+function fotoPerfil() {
+  background(colorFondo);
+  if (inputUsuario) inputUsuario.hide();
+  if (botonLogin) botonLogin.hide();
+
+  fill(colorPrincipal);
+  noStroke();
+  textAlign(CENTER, CENTER);
+  textSize(28);
+  textStyle(BOLD);
+  text('Foto de perfil', width / 2, 40);
+  textStyle(NORMAL);
+
+  let previewW = min(width - 120, 500);
+  let previewH = previewW * 0.75;
+  let previewX = (width - previewW) / 2;
+  let previewY = 90;
+
+  if (captura && captura.width > 0) {
+    image(captura, previewX, previewY, previewW, previewH);
+  } else {
+    fill(255);
+    rect(previewX, previewY, previewW, previewH, 16);
+    fill(120);
+    textSize(18);
+    text('Cámara no disponible', width / 2, previewY + previewH / 2);
+  }
+
+  botonFotoPerfil.position(width / 2 - 80, previewY + previewH + 25);
+  botonFotoPerfil.size(160, 45);
+  botonFotoPerfil.show();
+
+  botonConfirmarFoto.position(width / 2 - 80, previewY + previewH + 85);
+  botonConfirmarFoto.size(160, 45);
+  botonConfirmarFoto.show();
+
+  botonCancelarFoto.position(width / 2 - 80, previewY + previewH + 145);
+  botonCancelarFoto.size(160, 45);
+  botonCancelarFoto.show();
+}
+
+function verificarFotoPerfil() {
+  // Aquí podrías agregar lógica para verificar si la foto de perfil es válida
+  // Por ahora, simplemente pasamos al estado COLAPSO
+  //estadoActual = 'COLAPSO';
+}
+
+  function Colapso() {
   // Registrar el inicio de la simulación
   registrarEvento("SISTEMA", "INICIO_SESION", "El usuario ha ingresado a la interfaz dividida.");
   estadoActual = 'COLAPSO';
@@ -349,9 +412,6 @@ function windowResized() {
     let formY = height / 2 - 50;
 
     inputUsuario.position(formX + 15, formY + 20);
-    inputPassword.position(formX + 15, formY + 80);
     botonLogin.position(formX + 15, formY + 140);
-    enlaceOlvidaste.position(formX + 90, formY + 200);
-    botonCrearCuenta.position(formX + 85, formY + 250);
   }
 }
