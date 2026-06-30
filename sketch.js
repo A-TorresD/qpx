@@ -158,10 +158,16 @@ function Colapso() {
 
 function InterfazDividida() {
   background(240); 
+  fill(0); //Backdrop de la cámara
+  rect(0, 0, width/2, height);
   let mitadAncho = width / 2;
 
   // Cámara de vigilancia (Izquierda)
-  image(captura, 0, 0, mitadAncho, height);
+  let aspectRatio = captura.width / captura.height;
+  let camAncho = min(mitadAncho, height * aspectRatio);
+  let camAlto = camAncho / aspectRatio;
+  let yCamara = (height - camAlto) / 2;
+  image(captura, 0, yCamara, camAncho, camAlto);
 
   // Logo Qpx sobre el video
   fill(255); 
